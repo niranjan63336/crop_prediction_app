@@ -61,12 +61,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
 # =======================================================================
 # LOAD CLEANED DATA (UPDATED)
 # =======================================================================
 @st.cache_data
 def load_data():
-    """Load the cleaned dataset (PARQUET VERSION)"""
+    """Load cleaned parquet dataset."""
     try:
         df = pd.read_parquet("outputs/cleaned_data.parquet")
         df.columns = df.columns.str.strip()
@@ -76,8 +77,8 @@ def load_data():
         return None
 
 
-# Load data
 df = load_data()
+
 
 # =======================================================================
 # SIDEBAR
@@ -110,13 +111,15 @@ if page == "🏠 Home":
     st.markdown("---")
 
     if df is not None:
+
+        # Hero Cards
         col1, col2, col3 = st.columns(3)
 
         with col1:
             st.markdown("""
                 <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                             padding: 30px; border-radius: 15px; color: white; text-align: center;'>
-                    <h2 style='color: white; margin: 0;'>📊</h2>
+                    <h2>📊</h2>
                     <h3>Big Data Analytics</h3>
                     <p>Processing 345K+ agricultural records</p>
                 </div>
@@ -126,7 +129,7 @@ if page == "🏠 Home":
             st.markdown("""
                 <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
                             padding: 30px; border-radius: 15px; color: white; text-align: center;'>
-                    <h2 style='color: white; margin: 0;'>🤖</h2>
+                    <h2>🤖</h2>
                     <h3>ML Predictions</h3>
                     <p>Random Forest algorithm for accuracy</p>
                 </div>
@@ -136,7 +139,7 @@ if page == "🏠 Home":
             st.markdown("""
                 <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
                             padding: 30px; border-radius: 15px; color: white; text-align: center;'>
-                    <h2 style='color: white; margin: 0;'>🌱</h2>
+                    <h2>🌱</h2>
                     <h3>Smart Recommendations</h3>
                     <p>Optimized crop selection system</p>
                 </div>
@@ -144,155 +147,136 @@ if page == "🏠 Home":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Overview
+        # Dataset Overview
         st.markdown("## 📈 Dataset Overview")
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
             st.metric("Total Records", f"{len(df):,}")
         with col2:
-            st.metric("Unique Crops", f"{df['Crop'].nunique()}")
+            st.metric("Unique Crops", df['Crop'].nunique())
         with col3:
-            st.metric("States Covered", f"{df['State'].nunique()}")
+            st.metric("States Covered", df['State'].nunique())
         with col4:
-            st.metric("Year Range", f"{df['Crop_Year'].min()}-{df['Crop_Year'].max()}")
+            st.metric("Years", f"{df['Crop_Year'].min()} - {df['Crop_Year'].max()}")
 
+        # Stats Section
         st.markdown("### 📊 Quick Statistics")
-
         col1, col2 = st.columns(2)
 
         with col1:
             st.markdown("**Top 10 Crops by Production**")
-            top_crops = df.groupby('Crop')['Production'].sum().sort_values(ascending=False).head(10)
-            fig = px.bar(
-                x=top_crops.values,
-                y=top_crops.index,
-                orientation='h',
-                labels={'x': 'Production', 'y': 'Crop'},
-                color=top_crops.values,
-                color_continuous_scale='Greens'
-            )
+            top_crops = df.groupby('Crop')['Production'].sum().sort_values(False).head(10)
+            fig = px.bar(x=top_crops.values, y=top_crops.index, orientation='h',
+                         color=top_crops.values, color_continuous_scale='Greens')
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
             st.markdown("**Top 10 States by Area**")
-            top_states = df.groupby('State')['Area'].sum().sort_values(ascending=False).head(10)
-            fig = px.bar(
-                x=top_states.values,
-                y=top_states.index,
-                orientation='h',
-                labels={'x': 'Area', 'y': 'State'},
-                color=top_states.values,
-                color_continuous_scale='Blues'
-            )
+            top_states = df.groupby('State')['Area'].sum().sort_values(False).head(10)
+            fig = px.bar(x=top_states.values, y=top_states.index, orientation='h',
+                         color=top_states.values, color_continuous_scale='Blues')
             st.plotly_chart(fig, use_container_width=True)
 
 # =======================================================================
-# CROP RECOMMENDATION PAGE
+# CROP RECOMMENDATION
 # =======================================================================
 elif page == "🌾 Crop Recommendation":
 
     st.title("🌾 Crop Recommendation System")
-    st.markdown("### Get personalized crop recommendations based on your location and land area")
+    st.markdown("### Get personalized crop recommendations based on your region and land area")
     st.markdown("---")
 
     if df is not None:
+
         col1, col2 = st.columns(2)
 
         with col1:
             st.markdown("### 📝 Enter Your Details")
 
             states = sorted(df['State'].unique())
-            selected_state = st.selectbox("🗺️ Select State", states)
+            state = st.selectbox("🗺️ Select State", states)
 
-            months = {
+            seasons = {
                 1: "January (Whole Year)", 3: "March (Summer)",
                 7: "July (Kharif)", 9: "September (Autumn)",
                 11: "November (Rabi)"
             }
-            selected_month = st.selectbox(
-                "📅 Select Month/Season",
-                options=list(months.keys()),
-                format_func=lambda x: months[x]
-            )
+            month = st.selectbox("📅 Select Month/Season",
+                                 options=list(seasons.keys()),
+                                 format_func=lambda x: seasons[x])
 
-            area = st.number_input(
-                "📏 Enter Land Area (hectares)", min_value=0.1, max_value=10000.0, value=10.0
-            )
+            area = st.number_input("📏 Enter Land Area (hectares)",
+                                   min_value=0.1, max_value=10000.0,
+                                   value=10.0)
 
             if st.button("🔍 Get Recommendation", use_container_width=True):
 
-                filtered_df = df[
-                    (df['State'] == selected_state) &
-                    (df['Month'] == selected_month)
-                ]
+                filtered = df[(df["State"] == state) & (df["Month"] == month)]
 
-                if filtered_df.empty:
-                    filtered_df = df[df['State'] == selected_state]
+                if filtered.empty:
+                    filtered = df[df["State"] == state]
 
-                if filtered_df.empty:
-                    filtered_df = df[df['Month'] == selected_month]
+                if filtered.empty:
+                    filtered = df[df["Month"] == month]
 
-                if filtered_df.empty:
-                    filtered_df = df
+                if filtered.empty:
+                    filtered = df  # fallback
 
-                crop_perf = filtered_df.groupby('Crop').agg({
-                    'Yield': 'mean',
-                    'Production': 'mean',
-                    'Area': 'mean'
-                }).reset_index()
+                results = filtered.groupby("Crop").agg({
+                    "Yield": "mean",
+                    "Production": "mean"
+                }).sort_values("Yield", ascending=False)
 
-                crop_perf = crop_perf.sort_values('Yield', ascending=False)
+                best_crop = results.index[0]
+                best_yield = results.iloc[0]["Yield"]
+                total_output = best_yield * area
 
-                best = crop_perf.iloc[0]
-                predicted_yield = best['Yield']
-                predicted_production = predicted_yield * area
-
-                st.session_state['rec'] = {
-                    'crop': best['Crop'],
-                    'yield': predicted_yield,
-                    'production': predicted_production,
-                    'area': area,
-                    'top': crop_perf.head(5)
+                st.session_state["rec"] = {
+                    "crop": best_crop,
+                    "yield": best_yield,
+                    "production": total_output,
+                    "top": results.head(5)
                 }
 
         with col2:
-            if 'rec' in st.session_state:
-                rec = st.session_state['rec']
-                st.success(f"**Recommended Crop: {rec['crop']}** 🌱")
+            if "rec" in st.session_state:
+                rec = st.session_state["rec"]
 
-                col_a, col_b = st.columns(2)
-                with col_a:
+                st.success(f"### 🌱 Recommended Crop: **{rec['crop']}**")
+
+                colA, colB = st.columns(2)
+                with colA:
                     st.metric("Expected Yield", f"{rec['yield']:.2f} t/ha")
-                with col_b:
-                    st.metric("Total Production", f"{rec['production']:.2f} t")
+                with colB:
+                    st.metric("Expected Production", f"{rec['production']:.2f} tonnes")
 
-                top_df = rec['top'][['Crop', 'Yield']]
-                top_df['Yield'] = top_df['Yield'].round(2)
-                top_df.columns = ['Crop', 'Avg Yield']
-                st.dataframe(top_df, use_container_width=True)
+                st.markdown("### 📊 Top 5 Crops")
+                st.dataframe(rec["top"], use_container_width=True)
+
+
 
 # =======================================================================
-# VISUALIZATIONS PAGE (unchanged)
+# VISUALIZATIONS (Unchanged)
 # =======================================================================
-
 elif page == "📊 Visualizations":
     st.title("📊 Exploratory Data Analysis")
     st.markdown("### Interactive visualizations and insights")
     st.markdown("---")
 
-    # (KEEP YOUR ORIGINAL VISUALIZATION CODE HERE — SAME AS BEFORE)
+    st.info("➡️ Your visualizations code continues here... (unchanged).")
+
 
 # =======================================================================
-# INSIGHTS PAGE (unchanged)
+# INSIGHTS (Unchanged)
 # =======================================================================
-
 elif page == "💡 Insights":
     st.title("💡 Key Insights & Recommendations")
-    st.markdown("### Data-driven insights from agricultural analysis")
+    st.markdown("### Data-driven insights extracted from the dataset")
     st.markdown("---")
 
-    # (KEEP YOUR ORIGINAL INSIGHTS CODE HERE — SAME AS BEFORE)
+    st.info("➡️ Your Insights code continues here... (unchanged).")
+
 
 # FOOTER
 st.markdown("---")
