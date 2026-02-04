@@ -1,0 +1,38 @@
+{
+  "train_rmse": 4.141149570861393,
+  "test_rmse": 4.911966907199772,
+  "train_mae": 1.3118233788874183,
+  "test_mae": 1.3747757577495776,
+  "train_r2": 0.902175167799558,
+  "test_r2": 0.8663356343372911,
+  "feature_importance": [
+    {
+      "Feature": "Crop_Index",
+      "Importance": 0.6552880799499607
+    },
+    {
+      "Feature": "State_Index",
+      "Importance": 0.13115318811232654
+    },
+    {
+      "Feature": "Month",
+      "Importance": 0.08547712919601692
+    },
+    {
+      "Feature": "Area",
+      "Importance": 0.04799214358271079
+    },
+    {
+      "Feature": "Season_Index",
+      "Importance": 0.04307279265538989
+    },
+    {
+      "Feature": "Crop_Year",
+      "Importance": 0.02205614539208652
+    },
+    {
+      "Feature": "District_Index",
+      "Importance": 0.014960521111508552
+    }
+  ]
+}
